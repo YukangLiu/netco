@@ -21,7 +21,7 @@
 <br>
 <br>
 4、编译：<br>
-	netco：make即可,会生成libnetco.so。<br>
+	src：make即可,会生成libnetco.so。<br>
 	example：make了netco之后进入该文件夹make即可。<br>
 <br>
 <br>
