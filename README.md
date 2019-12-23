@@ -6,6 +6,7 @@
 <br>
 1、定位：<br>
 	netco协程库是纯c++11实现的轻量级对称协程库，有着极简的协程创建接口设计和用于并发网络编程的接口。<br>
+	若不需要用于网络编程，可使用我另一个更轻量的协程库tinyco：https://github.com/YukangLiu/tinyco <br>
 <br>
 <br>
 2、使用：<br>
