@@ -11,16 +11,16 @@ namespace netco {
 		SpinlockGuard(std::atomic_int &sem)
 			: sem_(sem)
 		{
-			int exp = 0;
-			while (!sem_.compare_exchange_strong(exp, 1))
+			int exp = 1;
+			while (!sem_.compare_exchange_strong(exp, 0))
 			{
-				exp = 0;
+				exp = 1;
 			}
 		}
 
 		~SpinlockGuard()
 		{
-			sem_.store(0);
+			sem_.store(1);
 		}
 
 		DISALLOW_COPY_MOVE_AND_ASSIGN(SpinlockGuard);

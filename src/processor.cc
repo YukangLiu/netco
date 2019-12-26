@@ -11,7 +11,7 @@ using namespace netco;
 __thread int threadIdx = -1;
 
 Processor::Processor(int tid)
-	: tid_(tid), status_(PRO_STOPPED), pLoop_(nullptr), runningNewQue_(0), semaphore_(0), pCurCoroutine_(nullptr)
+	: tid_(tid), status_(PRO_STOPPED), pLoop_(nullptr), runningNewQue_(0), semaphore_(1), pCurCoroutine_(nullptr)
 {
 	mainCtx_.makeCurContext();
 }
