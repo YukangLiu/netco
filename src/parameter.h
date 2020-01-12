@@ -16,7 +16,10 @@ namespace netco
 		static constexpr int epollTimeOutMs = 10000;
 
 		//监听队列的长度
-		constexpr static unsigned backLog = 1024;
+		constexpr static unsigned backLog = 4096;
+
+		//内存池没有空闲内存块时申请memPoolMallocObjCnt个对象大小的内存块
+		static constexpr size_t memPoolMallocObjCnt = 40;
 	}
 	
 }

@@ -11,14 +11,14 @@ static void coWrapFunc(Processor* pP)
 	pP->killCurCo();
 }
 
-Coroutine::Coroutine(Processor* pMyProcessor, std::function<void()>&& func)
-	: coFunc_(std::move(func)), pMyProcessor_(pMyProcessor), status_(CO_DEAD)//, ctx_(stack_, parameter::coroutineStackSize)
+Coroutine::Coroutine(Processor* pMyProcessor, size_t stackSize, std::function<void()>&& func)
+	: coFunc_(std::move(func)), pMyProcessor_(pMyProcessor), status_(CO_DEAD), ctx_(stackSize)
 {
 	status_ = CO_READY;
 }
 
-Coroutine::Coroutine(Processor* pMyProcessor, std::function<void()>& func)
-	: coFunc_(func), pMyProcessor_(pMyProcessor), status_(CO_DEAD)//, ctx_(stack_, parameter::coroutineStackSize)
+Coroutine::Coroutine(Processor* pMyProcessor, size_t stackSize, std::function<void()>& func)
+	: coFunc_(func), pMyProcessor_(pMyProcessor), status_(CO_DEAD), ctx_(stackSize)
 {
 	status_ = CO_READY;
 }
@@ -49,3 +49,7 @@ void Coroutine::resume()
 	}
 }
 
+void Coroutine::yield()
+{
+	status_ = CO_WAITING;
+};

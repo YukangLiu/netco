@@ -22,14 +22,14 @@ namespace netco
 		static Scheduler* getScheduler();
 
 		//在idx号线程创建新协程
-		inline void createNewCo(std::function<void()>&& func);
-		inline void createNewCo(std::function<void()>& func);
+		void createNewCo(std::function<void()>&& func, size_t stackSize);
+		void createNewCo(std::function<void()>& func, size_t stackSize);
 
-		inline Processor* getProcessor(int);
+		Processor* getProcessor(int);
 
-		inline int getProCnt();
+		int getProCnt();
 
-		inline void join();
+		void join();
 
 	private:
 		//初始化Scheduler，threadCnt为开启几个线程
@@ -45,33 +45,5 @@ namespace netco
 
 		ProcessorSelector proSelector_;
 	};
-
-	inline void Scheduler::createNewCo(std::function<void()>&& func)
-	{
-		proSelector_.next()->goNewCo(std::move(func));
-	}
-
-	inline void Scheduler::createNewCo(std::function<void()>& func)
-	{
-		proSelector_.next()->goNewCo(func);
-	}
-
-	inline void Scheduler::join()
-	{
-		for (auto pP : processors_)
-		{
-			pP->join();
-		}
-	}
-
-	inline Processor* Scheduler::getProcessor(int id)
-	{
-		return processors_[id];
-	}
-
-	inline int Scheduler::getProCnt()
-	{
-		return static_cast<int>(processors_.size());
-	}
 
 }

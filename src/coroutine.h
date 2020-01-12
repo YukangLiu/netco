@@ -20,8 +20,8 @@ namespace netco
 	class Coroutine
 	{
 	public:
-		Coroutine(Processor*, std::function<void()>&&);
-		Coroutine(Processor*, std::function<void()>&);
+		Coroutine(Processor*, size_t stackSize, std::function<void()>&&);
+		Coroutine(Processor*, size_t stackSize, std::function<void()>&);
 		~Coroutine();
 
 		DISALLOW_COPY_MOVE_AND_ASSIGN(Coroutine);
@@ -30,7 +30,7 @@ namespace netco
 		void resume();
 
 		//暂停运行当前协程
-		inline void yield();
+		void yield();
 
 		//运行该协程的函数
 		inline void startFunc() { coFunc_(); };
@@ -48,12 +48,6 @@ namespace netco
 
 		Context ctx_;
 
-	};
-
-
-	inline void Coroutine::yield()
-	{
-		status_ = CO_WAITING;
 	};
 
 }

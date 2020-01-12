@@ -41,6 +41,15 @@ void Timer::getExpiredCoroutines(std::vector<Coroutine*>& expiredCoroutines)
 		timerCoHeap_.pop();
 	}
 
+	if (!expiredCoroutines.empty())
+	{
+		ssize_t cnt = TIMER_DUMMYBUF_SIZE;
+		while (cnt >= TIMER_DUMMYBUF_SIZE)
+		{
+			cnt = ::read(timeFd_, dummyBuf_, TIMER_DUMMYBUF_SIZE);
+		}
+	}
+
 	if (!timerCoHeap_.empty())
 	{
 		Time time = timerCoHeap_.top().first;
@@ -67,4 +76,15 @@ bool Timer::resetTimeOfTimefd(Time time)
 	newValue.it_value = time.timeIntervalFromNow();
 	int ret = ::timerfd_settime(timeFd_, 0, &newValue, &oldValue);
 	return ret < 0 ? false : true;
+}
+
+void Timer::runAfter(Time time, Coroutine* pCo)
+{
+	Time runTime(Time::now().getTimeVal() + time.getTimeVal());
+	runAt(runTime, pCo);
+}
+
+void Timer::wakeUp()
+{
+	resetTimeOfTimefd(Time::now());
 }

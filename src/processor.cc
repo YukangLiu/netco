@@ -11,7 +11,7 @@ using namespace netco;
 __thread int threadIdx = -1;
 
 Processor::Processor(int tid)
-	: tid_(tid), status_(PRO_STOPPED), pLoop_(nullptr), runningNewQue_(0), semaphore_(1), pCurCoroutine_(nullptr)
+	: tid_(tid), status_(PRO_STOPPED), pLoop_(nullptr), runningNewQue_(0), pCurCoroutine_(nullptr), mainCtx_(0)
 {
 	mainCtx_.makeCurContext();
 }
@@ -68,7 +68,7 @@ void Processor::wait(Time time)
 void Processor::goNewCo_aux(Coroutine* pCo)
 {
 	{
-		SpinlockGuard lock(semaphore_);
+		SpinlockGuard lock(newQueLock_);
 		newCoroutines_[!runningNewQue_].push(pCo);
 	}
 	wakeUpEpoller();
@@ -130,7 +130,7 @@ bool Processor::loop()
 				}
 
 				{
-					SpinlockGuard lock(semaphore_);
+					SpinlockGuard lock(newQueLock_);
 					runningNewQue_ = !runningQue;
 				}
 
@@ -145,7 +145,11 @@ bool Processor::loop()
 				for (auto deadCo : removedCo_)
 				{
 					coSet_.erase(deadCo);
-					delete deadCo;
+					//delete deadCo;
+					{
+						SpinlockGuard lock(coPoolLock_);
+						coPool_.delete_obj(deadCo);
+					}
 				}
 				removedCo_.clear();
 				
@@ -160,6 +164,7 @@ ssize_t Processor::read(int fd, char* buf, size_t len)
 {
 	epoller_.addEv(pCurCoroutine_, fd, EPOLLIN | EPOLLPRI | EPOLLRDHUP);
 	yield();
+	epoller_.removeEv(pCurCoroutine_, fd, EPOLLIN | EPOLLPRI | EPOLLRDHUP);
 	return ::read(fd, buf, len);
 }
 
@@ -167,5 +172,52 @@ Socket Processor::accept(Socket& listener)
 {
 	epoller_.addEv(pCurCoroutine_,listener.fd(), EPOLLIN | EPOLLPRI | EPOLLRDHUP);
 	yield();
+	epoller_.removeEv(pCurCoroutine_, listener.fd(), EPOLLIN | EPOLLPRI | EPOLLRDHUP);
 	return listener.accept();
+}
+
+void Processor::stop()
+{
+	status_ = PRO_STOPPING;
+}
+
+void Processor::join()
+{
+	pLoop_->join();
+}
+
+void Processor::wakeUpEpoller()
+{
+	timer_.wakeUp();
+}
+
+void Processor::goNewCo(std::function<void()>&& coFunc, size_t stackSize)
+{
+	//Coroutine* pCo = new Coroutine(this, stackSize, std::move(coFunc));
+	Coroutine* pCo = nullptr;
+
+	{
+		SpinlockGuard lock(coPoolLock_);
+		pCo = coPool_.new_obj(this, stackSize, std::move(coFunc));
+	}
+
+	goNewCo_aux(pCo);
+}
+
+void Processor::goNewCo(std::function<void()>& coFunc, size_t stackSize)
+{
+	//Coroutine* pCo = new Coroutine(this, stackSize, coFunc);
+	Coroutine* pCo = nullptr;
+
+	{
+		SpinlockGuard lock(coPoolLock_);
+		pCo = coPool_.new_obj(this, stackSize, coFunc);
+	}
+	
+	goNewCo_aux(pCo);
+}
+
+void Processor::killCurCo()
+{
+	removedCo_.push_back(pCurCoroutine_);
 }

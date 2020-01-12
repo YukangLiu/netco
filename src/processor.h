@@ -4,7 +4,8 @@
 #include <set>
 #include <mutex>
 #include <thread>
-#include <atomic>
+#include "objpool.h"
+#include "spinlock.h"
 #include "context.h"
 #include "coroutine.h"
 #include "epoller.h"
@@ -37,8 +38,8 @@ namespace netco
 		DISALLOW_COPY_MOVE_AND_ASSIGN(Processor);
 
 		//运行一个新协程，该协程的函数是func
-		inline void goNewCo(std::function<void()>&& func);
-		inline void goNewCo(std::function<void()>& func);
+		void goNewCo(std::function<void()>&& func, size_t stackSize);
+		void goNewCo(std::function<void()>& func, size_t stackSize);
 
 		void yield();
 
@@ -46,13 +47,13 @@ namespace netco
 		void wait(Time time);
 
 		//清除当前正在运行的协程
-		inline void killCurCo();
+		void killCurCo();
 
 		bool loop();
 
-		inline void stop();
+		void stop();
 
-		inline void join();
+		void join();
 
 		ssize_t read(int fd,char* buf,size_t len);
 
@@ -87,7 +88,9 @@ namespace netco
 		//新任务双缓存队列中正在运行的队列号，另一条用于添加任务
 		volatile int runningNewQue_;
 
-		std::atomic_int semaphore_;
+		Spinlock newQueLock_;
+
+		Spinlock coPoolLock_;
 
 		std::mutex newCoQueMtx_;
 
@@ -106,42 +109,12 @@ namespace netco
 
 		Timer timer_;
 
+		ObjPool<Coroutine> coPool_;
+
 		Coroutine* pCurCoroutine_;
 
 		Context mainCtx_;
 	};
-
-	inline void Processor::stop()
-	{
-		status_ = PRO_STOPPING;
-	}
-
-	inline void Processor::join()
-	{
-		pLoop_->join();
-	}
-
-	inline void Processor::wakeUpEpoller()
-	{
-		timer_.wakeUp();
-	}
-
-	inline void Processor::goNewCo(std::function<void()>&& coFunc)
-	{
-		Coroutine* pCo = new Coroutine(this, std::move(coFunc));
-		goNewCo_aux(pCo);
-	}
-
-	inline void Processor::goNewCo(std::function<void()>& coFunc)
-	{
-		Coroutine* pCo = new Coroutine(this, coFunc);
-		goNewCo_aux(pCo);
-	}
-
-	inline void Processor::killCurCo()
-	{
-		removedCo_.push_back(pCurCoroutine_);
-	}
 
 }
 

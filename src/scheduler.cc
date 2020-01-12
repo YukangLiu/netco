@@ -48,3 +48,31 @@ Scheduler* Scheduler::getScheduler()
 	}
 	return pScher_;
 }
+
+void Scheduler::createNewCo(std::function<void()>&& func, size_t stackSize)
+{
+	proSelector_.next()->goNewCo(std::move(func), stackSize);
+}
+
+void Scheduler::createNewCo(std::function<void()>& func, size_t stackSize)
+{
+	proSelector_.next()->goNewCo(func, stackSize);
+}
+
+void Scheduler::join()
+{
+	for (auto pP : processors_)
+	{
+		pP->join();
+	}
+}
+
+Processor* Scheduler::getProcessor(int id)
+{
+	return processors_[id];
+}
+
+int Scheduler::getProCnt()
+{
+	return static_cast<int>(processors_.size());
+}

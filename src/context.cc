@@ -5,16 +5,12 @@
 
 using namespace netco;
 
-Context::Context()
-	:pCtx_(nullptr),pStack_(nullptr)
+Context::Context(size_t stackSize)
+	:pStack_(nullptr), stackSize_(stackSize)
 { }
 
 Context::~Context()
 {
-	if (pCtx_)
-	{
-		delete pCtx_;
-	}
 	if (pStack_)
 	{
 		free(pStack_);
@@ -23,38 +19,30 @@ Context::~Context()
 
 void Context::makeContext(void (*func)(), Processor* pP, Context* pLink)
 {
-	if (nullptr == pCtx_)
-	{
-		pCtx_ = new struct ucontext_t;
-	}
 	if (nullptr == pStack_)
 	{
-		pStack_ = malloc(parameter::coroutineStackSize);
+		pStack_ = malloc(stackSize_);
 	}
-	::getcontext(pCtx_);
-    pCtx_->uc_stack.ss_sp = pStack_;
-    pCtx_->uc_stack.ss_size = parameter::coroutineStackSize;
-    pCtx_->uc_link = pLink->getUCtx();
-	makecontext(pCtx_, func, 1, pP);
+	::getcontext(&ctx_);
+    ctx_.uc_stack.ss_sp = pStack_;
+	ctx_.uc_stack.ss_size = parameter::coroutineStackSize;
+	ctx_.uc_link = pLink->getUCtx();
+	makecontext(&ctx_, func, 1, pP);
 }
 
 void Context::makeCurContext()
 {
-	if (nullptr == pCtx_)
-	{
-		pCtx_ = new struct ucontext_t;
-	}
-	::getcontext(pCtx_);
+	::getcontext(&ctx_);
 }
 
 void Context::swapToMe(Context* pOldCtx)
 {
 	if (nullptr == pOldCtx)
 	{
-		setcontext(pCtx_);
+		setcontext(&ctx_);
 	}
 	else
 	{
-		swapcontext(pOldCtx->getUCtx(), pCtx_);
+		swapcontext(pOldCtx->getUCtx(), &ctx_);
 	}
 }

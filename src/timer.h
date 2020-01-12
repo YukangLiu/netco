@@ -9,6 +9,8 @@
 #include <mutex>
 #include <functional>
 
+#define TIMER_DUMMYBUF_SIZE 1024
+
 namespace netco
 {
 	class Coroutine;
@@ -34,9 +36,9 @@ namespace netco
 		void runAt(Time time, Coroutine* pCo);
 
 		//经过time毫秒恢复协程co
-		inline void runAfter(Time time, Coroutine* pCo);
+		void runAfter(Time time, Coroutine* pCo);
 
-		inline void wakeUp();
+		void wakeUp();
 
 	private:
 		//给timefd重新设置时间，time是绝对时间
@@ -46,20 +48,12 @@ namespace netco
 
 		int timeFd_;
 
+		//用于read timefd上数据的
+		char dummyBuf_[TIMER_DUMMYBUF_SIZE];
+
 		//定时器协程集合
 		//std::multimap<Time, Coroutine*> timerCoMap_;
 		TimerHeap timerCoHeap_;
 	};
-
-	inline void Timer::runAfter(Time time, Coroutine* pCo)
-	{
-		Time runTime(Time::now().getTimeVal() + time.getTimeVal());
-		runAt(runTime, pCo);
-	}
-
-	inline void Timer::wakeUp()
-	{
-		resetTimeOfTimefd(Time::now());
-	}
 
 }

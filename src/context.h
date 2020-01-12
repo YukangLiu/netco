@@ -1,6 +1,7 @@
 //@author Liu Yukang
 #pragma once
 #include "utils.h"
+#include "parameter.h"
 #include <ucontext.h>
 
 namespace netco
@@ -10,15 +11,15 @@ namespace netco
 	class Context
 	{
 	public:
-		Context();
+		Context(size_t stackSize);
 		~Context();
 
 		Context(const Context& otherCtx) 
-			: pCtx_(otherCtx.pCtx_), pStack_(otherCtx.pStack_)
+			: ctx_(otherCtx.ctx_), pStack_(otherCtx.pStack_)
 		{ }
 
 		Context(Context&& otherCtx)
-			: pCtx_(otherCtx.pCtx_), pStack_(otherCtx.pStack_)
+			: ctx_(otherCtx.ctx_), pStack_(otherCtx.pStack_)
 		{ }
 
 		Context& operator=(const Context& otherCtx) = delete;
@@ -33,13 +34,15 @@ namespace netco
 		void swapToMe(Context* pOldCtx);
 
 		//获取当前上下文的ucontext_t指针
-		inline struct ucontext_t* getUCtx() { return pCtx_; };
+		inline struct ucontext_t* getUCtx() { return &ctx_; };
 
 	private:
 
-		struct ucontext_t* pCtx_;
+		struct ucontext_t ctx_;
 
 		void* pStack_;
+
+		size_t stackSize_;
 
 	};
 
