@@ -19,9 +19,9 @@ void test_func1(netco::Processor& p)
 					p.wait(10000);
 					std::cout << "222222" << std::endl;
 				}
-				);
+				,parameter::coroutineStackSize);
 			std::cout << "111111" << std::endl;
-		});
+		},parameter::coroutineStackSize);
 
 	p.goNewCo([&p]
 		{
@@ -33,9 +33,9 @@ void test_func1(netco::Processor& p)
 					p.wait(10000);
 					std::cout << "444444" << std::endl;
 				}
-				);
+				, parameter::coroutineStackSize);
 			std::cout << "333333" << std::endl;
-		});
+		}, parameter::coroutineStackSize);
 }
 
 //processor http response test
@@ -69,7 +69,7 @@ void test_func2(netco::Processor& p)
 				    p.wait(50);//需要等一下，否则还没发送完毕就关闭了
 				}
 			}
-		);
+			, parameter::coroutineStackSize);
 	}
 }
 
@@ -180,7 +180,7 @@ void test_func5()
 						);
 				}
 			}
-			, i);
+			,parameter::coroutineStackSize, i);
 	}
 	
 }
