@@ -67,7 +67,7 @@ namespace netco
 		void* ret;
 		if (nullptr == _freeListHead)
 		{
-			size_t mallocCnt = Parameter::memPoolMallocObjCnt + _mallocTimes;
+			size_t mallocCnt = parameter::memPoolMallocObjCnt + _mallocTimes;
 			void* newMallocBlk = malloc(mallocCnt * objSize_ + sizeof(MemBlockNode));
 			MemBlockNode* mallocNode = static_cast<MemBlockNode*>(newMallocBlk);
 			mallocNode->next = _mallocListHead;
