@@ -16,20 +16,20 @@ namespace netco
 		DISALLOW_COPY_MOVE_AND_ASSIGN(ObjPool);
 
 		template<typename... Args>
-		inline T* new_obj(Args... args);
+		inline T* New(Args... args);
 
-		inline void delete_obj(T* obj);
+		inline void Delete(void* obj);
 
 	private:
 		template<typename... Args>
-		inline T* new_aux(std::true_type, Args... args);
+		inline T* New_aux(std::true_type, Args... args);
 
 		template<typename... Args>
-		inline T* new_aux(std::false_type, Args... args);
+		inline T* New_aux(std::false_type, Args... args);
 
-		inline void delete_aux(std::true_type, T* obj);
+		inline void Delete_aux(std::true_type, void* obj);
 
-		inline void delete_aux(std::false_type, T* obj);
+		inline void Delete_aux(std::false_type, void* obj);
 
 		MemPool<sizeof(T)> _memPool;
 
@@ -37,47 +37,47 @@ namespace netco
 
 	template<class T>
 	template<typename... Args>
-	inline T* ObjPool<T>::new_obj(Args... args)
+	inline T* ObjPool<T>::New(Args... args)
 	{
-		return new_aux(std::integral_constant<bool, std::is_trivially_constructible<T>::value>(), args...);
+		return New_aux(std::integral_constant<bool, std::is_trivially_constructible<T>::value>(), args...);
 	}
 
 	template<class T>
 	template<typename... Args>
-	inline T* ObjPool<T>::new_aux(std::true_type, Args... args)
+	inline T* ObjPool<T>::New_aux(std::true_type, Args... args)
 	{
-		return static_cast<T*>(_memPool.allocAMemBlock());
+		return static_cast<T*>(_memPool.AllocAMemBlock());
 	}
 
 	template<class T>
 	template<typename... Args>
-	inline T* ObjPool<T>::new_aux(std::false_type, Args... args)
+	inline T* ObjPool<T>::New_aux(std::false_type, Args... args)
 	{
-		void* newPos = _memPool.allocAMemBlock();
+		void* newPos = _memPool.AllocAMemBlock();
 		return new(newPos) T(args...);
 	}
 
 	template<class T>
-	inline void ObjPool<T>::delete_obj(T* obj)
+	inline void ObjPool<T>::Delete(void* obj)
 	{
 		if (!obj)
 		{
 			return;
 		}
-		delete_aux(std::integral_constant<bool, std::is_trivially_destructible<T>::value>(), obj);
+		Delete_aux(std::integral_constant<bool, std::is_trivially_destructible<T>::value>(), obj);
 	}
 
 	template<class T>
-	inline void ObjPool<T>::delete_aux(std::true_type, T* obj)
+	inline void ObjPool<T>::Delete_aux(std::true_type, void* obj)
 	{
-		_memPool.freeAMemBlock(static_cast<void*>(obj));
+		_memPool.FreeAMemBlock(obj);
 	}
 
 	template<class T>
-	inline void ObjPool<T>::delete_aux(std::false_type, T* obj)
+	inline void ObjPool<T>::Delete_aux(std::false_type, void* obj)
 	{
 		obj->~T();
-		_memPool.freeAMemBlock(static_cast<void*>(obj));
+		_memPool.FreeAMemBlock(obj);
 	}
 
 }

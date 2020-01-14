@@ -1,5 +1,6 @@
 # netco协程库
  <br>
+ blog: https://blog.csdn.net/weixin_42333737/article/details/103981680 <br>
 <br>
 
 [版本说明](https://github.com/YukangLiu/netco/blob/master/Version.md)<br>
@@ -19,6 +20,10 @@
 	src：netco协程库的源代码。<br>
 	old_version：旧版本源码。<br>
 	example:测试示例。<br>
+	<br>
+	netco类图如下：<br>
+	
+![uml](https://github.com/YukangLiu/netco/raw/master/pic/netcouml.png)
 <br>
 <br>
 4、编译：<br>

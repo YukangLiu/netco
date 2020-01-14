@@ -20,71 +20,82 @@ namespace netco
 	{
 	public:
 		MemPool()
-			:freeListHead_(nullptr), mallocListHead_(nullptr), mallocTimes_(0)
-		{ };
+			:_freeListHead(nullptr), _mallocListHead(nullptr), _mallocTimes(0)
+		{
+			if (objSize < sizeof(MemBlockNode))
+			{
+				objSize_ = sizeof(MemBlockNode);
+			}
+			else
+			{
+				objSize_ = objSize;
+			}
+		};
 
 		~MemPool();
 
 		DISALLOW_COPY_MOVE_AND_ASSIGN(MemPool);
 
-		void* allocAMemBlock();
-		void freeAMemBlock(void* block);
+		void* AllocAMemBlock();
+		void FreeAMemBlock(void* block);
 
 	private:
 		//空闲链表
-		MemBlockNode* freeListHead_;
+		MemBlockNode* _freeListHead;
 		//malloc的大内存块链表
-		MemBlockNode* mallocListHead_;
+		MemBlockNode* _mallocListHead;
 		//实际malloc的次数
-		size_t mallocTimes_;
+		size_t _mallocTimes;
+		//每个内存块大小
+		size_t objSize_;
 	};
 
 	template<size_t objSize>
 	MemPool<objSize>::~MemPool()
 	{
-		while (mallocListHead_)
+		while (_mallocListHead)
 		{
-			MemBlockNode* mallocNode = mallocListHead_;
-			mallocListHead_ = mallocNode->next;
+			MemBlockNode* mallocNode = _mallocListHead;
+			_mallocListHead = mallocNode->next;
 			free(static_cast<void*>(mallocNode));
 		}
 	}
 
 	template<size_t objSize>
-	void* MemPool<objSize>::allocAMemBlock()
+	void* MemPool<objSize>::AllocAMemBlock()
 	{
 		void* ret;
-		if (nullptr == freeListHead_)
+		if (nullptr == _freeListHead)
 		{
-			size_t mallocCnt = parameter::memPoolMallocObjCnt + mallocTimes_;
-			void* newMallocBlk = malloc(mallocCnt * objSize + sizeof(MemBlockNode));
+			size_t mallocCnt = Parameter::memPoolMallocObjCnt + _mallocTimes;
+			void* newMallocBlk = malloc(mallocCnt * objSize_ + sizeof(MemBlockNode));
 			MemBlockNode* mallocNode = static_cast<MemBlockNode*>(newMallocBlk);
-			mallocNode->next = mallocListHead_;
-			mallocListHead_ = mallocNode;
+			mallocNode->next = _mallocListHead;
+			_mallocListHead = mallocNode;
 			newMallocBlk = static_cast<char*>(newMallocBlk) + sizeof(MemBlockNode);
 			for (size_t i = 0; i < mallocCnt; ++i)
 			{
 				MemBlockNode* newNode = static_cast<MemBlockNode*>(newMallocBlk);
-				newNode->next = freeListHead_;
-				freeListHead_ = newNode;
-				newMallocBlk = static_cast<char*>(newMallocBlk) + objSize;
+				newNode->next = _freeListHead;
+				_freeListHead = newNode;
+				newMallocBlk = static_cast<char*>(newMallocBlk) + objSize_;
 			}
-			++mallocTimes_;
+			++_mallocTimes;
 		}
-		ret = &(freeListHead_->data);
-		freeListHead_ = freeListHead_->next;
+		ret = &(_freeListHead->data);
+		_freeListHead = _freeListHead->next;
 		return ret;
 	}
 
 	template<size_t objSize>
-	void MemPool<objSize>::freeAMemBlock(void* block)
+	void MemPool<objSize>::FreeAMemBlock(void* block)
 	{
 		if (nullptr == block)
 		{
 			return;
 		}
 		MemBlockNode* newNode = static_cast<MemBlockNode*>(block);
-		newNode->next = freeListHead_;
-		freeListHead_ = newNode;
+		newNode->next = _freeListHead;
+		_freeListHead = newNode;
 	}
 }
