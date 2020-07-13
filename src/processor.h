@@ -10,7 +10,6 @@
 #include "coroutine.h"
 #include "epoller.h"
 #include "timer.h"
-#include "socket.h"
 
 extern __thread int threadIdx;
 
@@ -55,9 +54,8 @@ namespace netco
 
 		void join();
 
-		ssize_t read(int fd,char* buf,size_t len);
-
-		Socket accept(Socket& listener);
+		//等待fd上的ev事件返回
+		void waitEvent(int fd, int ev);
 
 		//获取当前正在运行的协程
 		inline Coroutine* getCurRunningCo() { return pCurCoroutine_; };

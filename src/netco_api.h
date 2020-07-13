@@ -23,10 +23,7 @@ namespace netco
 	//等待调度器的结束
 	void sche_join();
 
-	//////////////网络相关系统调用，未来进行hook//////////
-	ssize_t co_read(int fd, char* buf, size_t len);
-
-	Socket co_accept(Socket listener);
+	//////////////网络相关系统调用使用Socket.h头中的封装//////////
 }
 
 

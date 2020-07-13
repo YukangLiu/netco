@@ -160,20 +160,11 @@ bool Processor::loop()
 	return true;
 }
 
-ssize_t Processor::read(int fd, char* buf, size_t len)
-{
-	epoller_.addEv(pCurCoroutine_, fd, EPOLLIN | EPOLLPRI | EPOLLRDHUP);
+//等待fd上的ev事件返回
+void Processor::waitEvent(int fd, int ev){
+	epoller_.addEv(pCurCoroutine_, fd, ev);
 	yield();
-	epoller_.removeEv(pCurCoroutine_, fd, EPOLLIN | EPOLLPRI | EPOLLRDHUP);
-	return ::read(fd, buf, len);
-}
-
-Socket Processor::accept(Socket& listener)
-{
-	epoller_.addEv(pCurCoroutine_,listener.fd(), EPOLLIN | EPOLLPRI | EPOLLRDHUP);
-	yield();
-	epoller_.removeEv(pCurCoroutine_, listener.fd(), EPOLLIN | EPOLLPRI | EPOLLRDHUP);
-	return listener.accept();
+	epoller_.removeEv(pCurCoroutine_, fd, ev);
 }
 
 void Processor::stop()

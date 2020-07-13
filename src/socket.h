@@ -68,11 +68,14 @@ namespace netco {
 		//开始监听当前Socket
 		int listen();
 
-		//阻塞接收一个连接，返回一个新连接的Socket
+		//接收一个连接，返回一个新连接的Socket
 		Socket accept();
 
 		//从socket中读数据
 		ssize_t read(void* buf, size_t count);
+
+		//ip示例："127.0.0.1"
+		void connect(const char* ip, int port);
 
 		//往socket中写数据
 		ssize_t send(const void* buf, size_t count);
@@ -116,6 +119,9 @@ namespace netco {
 		//void SetNoSigPipe();
 
 	private:
+		//接收一个连接，返回一个新连接的Socket
+		Socket accept_raw();
+
 		//fd
 		const int _sockfd;
 

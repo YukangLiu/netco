@@ -1,5 +1,6 @@
 //@Author Liu Yukang 
 #include "socket.h"
+#include "scheduler.h"
 
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -7,6 +8,7 @@
 #include <stdio.h>  // snprintf
 #include <fcntl.h>
 #include <string.h>
+#include <sys/epoll.h>
 
 using namespace netco;
 
@@ -80,7 +82,7 @@ int Socket::listen()
 	return ret;
 }
 
-Socket Socket::accept()
+Socket Socket::accept_raw()
 {
 	int connfd = -1;
 	struct sockaddr_in client;
@@ -102,17 +104,61 @@ Socket Socket::accept()
 	return Socket(connfd, std::string(ip), port);
 }
 
+Socket Socket::accept(){
+	auto ret(accept_raw());
+	if(ret.isUseful()){
+		return ret;
+	}
+	netco::Scheduler::getScheduler()->getProcessor(threadIdx)->waitEvent(_sockfd, EPOLLIN | EPOLLPRI | EPOLLRDHUP | EPOLLHUP);
+	auto con(accept_raw());
+	if(con.isUseful()){
+		return con;
+	}
+	return accept();
+}
+
 //从socket中读数据
 ssize_t Socket::read(void* buf, size_t count)
 {
+	auto ret = ::read(_sockfd, buf, count);
+	if (ret >= 0){
+		return ret;
+	}
+	if(ret == -1 && errno == EINTR){
+		return read(buf, count);
+	}
+	netco::Scheduler::getScheduler()->getProcessor(threadIdx)->waitEvent(_sockfd, EPOLLIN | EPOLLPRI | EPOLLRDHUP | EPOLLHUP);
 	return ::read(_sockfd, buf, count);
+}
+
+void Socket::connect(const char* ip, int port){
+	struct sockaddr_in addr = {0};
+	addr.sin_family= AF_INET;
+	addr.sin_port = htons(port);
+	inet_pton(AF_INET, ip, &addr.sin_addr);
+	_ip = std::string(ip);
+	_port = port;
+	auto ret = ::connect(_sockfd, (struct sockaddr*)&addr, sizeof(sockaddr_in));
+	if(ret == 0){
+		return;
+	}
+	if(ret == -1 && errno == EINTR){
+		return connect(ip, port);
+	}
+	netco::Scheduler::getScheduler()->getProcessor(threadIdx)->waitEvent(_sockfd, EPOLLOUT);
+	return connect(ip, port);
 }
 
 //往socket中写数据
 ssize_t Socket::send(const void* buf, size_t count)
 {
 	//忽略SIGPIPE信号
-	return ::send(_sockfd, buf, count, MSG_NOSIGNAL);
+	size_t sendIdx = ::send(_sockfd, buf, count, MSG_NOSIGNAL);
+	if (sendIdx >= count){
+		return count;
+	}
+	netco::Scheduler::getScheduler()->getProcessor(threadIdx)->waitEvent(_sockfd, EPOLLOUT);
+	return send(buf + sendIdx, count - sendIdx);
 }
 
 int Socket::shutdownWrite()

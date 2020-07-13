@@ -36,13 +36,3 @@ void netco::sche_join()
 {
 	netco::Scheduler::getScheduler()->join();
 }
-
-ssize_t netco::co_read(int fd, char* buf, size_t len)
-{
-	return netco::Scheduler::getScheduler()->getProcessor(threadIdx)->read(fd, buf, len);
-}
-
-netco::Socket netco::co_accept(netco::Socket listener)
-{
-	return netco::Scheduler::getScheduler()->getProcessor(threadIdx)->accept(listener);
-}

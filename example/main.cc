@@ -38,40 +38,40 @@ void test_func1(netco::Processor& p)
 		}, parameter::coroutineStackSize);
 }
 
-//processor http response test
-void test_func2(netco::Processor& p)
-{
-	netco::Socket listener;
-	if (listener.isUseful())
-	{
-		listener.setTcpNoDelay(true);
-		listener.setReuseAddr(true);
-		listener.setReusePort(true);
-		listener.setBlockSocket();
-		if (listener.bind(80) < 0)
-		{
-			return ;
-		}
-		listener.listen();
-	}
-	while (1)
-	{
-		netco::Socket conn(listener.accept());
-		conn.setTcpNoDelay(true);
-		p.goNewCo(
-			[&p,conn]
-			{
-			    std::string hello("HTTP/1.0 200 OK\r\nServer: netco/0.1.0\r\nContent-Length: 72\r\nContent-Type: text/html\r\n\r\n<HTML><TITLE>hello</TITLE>\r\n<BODY><P>hello word!\r\n</BODY></HTML>\r\n");
-				char buf[1024];
-				if (p.read(conn.fd(), buf, 1024) > 0)
-				{
-				    send(conn.fd(),hello.c_str(),hello.size(),MSG_NOSIGNAL);
-				    p.wait(50);//需要等一下，否则还没发送完毕就关闭了
-				}
-			}
-			, parameter::coroutineStackSize);
-	}
-}
+// //processor http response test
+// void test_func2(netco::Processor& p)
+// {
+// 	netco::Socket listener;
+// 	if (listener.isUseful())
+// 	{
+// 		listener.setTcpNoDelay(true);
+// 		listener.setReuseAddr(true);
+// 		listener.setReusePort(true);
+// 		listener.setBlockSocket();
+// 		if (listener.bind(80) < 0)
+// 		{
+// 			return ;
+// 		}
+// 		listener.listen();
+// 	}
+// 	while (1)
+// 	{
+// 		netco::Socket conn(listener.accept());
+// 		conn.setTcpNoDelay(true);
+// 		p.goNewCo(
+// 			[&p,conn]
+// 			{
+// 			    std::string hello("HTTP/1.0 200 OK\r\nServer: netco/0.1.0\r\nContent-Length: 72\r\nContent-Type: text/html\r\n\r\n<HTML><TITLE>hello</TITLE>\r\n<BODY><P>hello word!\r\n</BODY></HTML>\r\n");
+// 				char buf[1024];
+// 				if (p.read(conn.fd(), buf, 1024) > 0)
+// 				{
+// 				    send(conn.fd(),hello.c_str(),hello.size(),MSG_NOSIGNAL);
+// 				    p.wait(50);//需要等一下，否则还没发送完毕就关闭了
+// 				}
+// 			}
+// 			, parameter::coroutineStackSize);
+// 	}
+// }
 
 //netco wait test
 void test_func3()
@@ -115,7 +115,7 @@ void test_func4()
 		listener.setReuseAddr(true);
 		listener.setReusePort(true);
 		listener.setBlockSocket();
-		if (listener.bind(80) < 0)
+		if (listener.bind(8099) < 0)
 		{
 			return;
 		}
@@ -123,19 +123,20 @@ void test_func4()
 	}
 	while (1)
 	{
-		netco::Socket conn(listener.accept());
-		conn.setTcpNoDelay(true);
+		netco::Socket* conn = new netco::Socket(listener.accept());
+		conn->setTcpNoDelay(true);
 		netco::co_go(
 			[conn]
 			{
 				std::string hello("HTTP/1.0 200 OK\r\nServer: netco/0.1.0\r\nContent-Length: 72\r\nContent-Type: text/html\r\n\r\n<HTML><TITLE>hello</TITLE>\r\n<BODY><P>hello word!\r\n</BODY></HTML>\r\n");
 				//std::string body("<HTML><TITLE>hello</TITLE>\r\n<BODY><P>hello word!\r\n</BODY></HTML>\r\n");
 				char buf[1024];
-				if (netco::co_read(conn.fd(), buf, 1024) > 0)
+				if (conn->read((void*)buf, 1024) > 0)
 				{
-					send(conn.fd(), hello.c_str(), hello.size(), MSG_NOSIGNAL);
+					conn->send(hello.c_str(), hello.size());
 					netco::co_wait(50);//需要等一下，否则还没发送完毕就关闭了
 				}
+				delete conn;
 			}
 			);
 	}
@@ -146,7 +147,7 @@ void test_func5()
 {
 	for (int i = 0; i < 4; ++i)
 	{
-		co_go(
+		netco::co_go(
 			[]
 			{
 				netco::Socket listener;
@@ -155,7 +156,7 @@ void test_func5()
 					listener.setTcpNoDelay(true);
 					listener.setReuseAddr(true);
 					listener.setReusePort(true);
-					if (listener.bind(80) < 0)
+					if (listener.bind(8099) < 0)
 					{
 						return;
 					}
@@ -163,19 +164,20 @@ void test_func5()
 				}
 				while (1)
 				{
-					netco::Socket conn(co_accept(listener));
-					conn.setTcpNoDelay(true);
+					netco::Socket* conn = new netco::Socket(listener.accept());
+					conn->setTcpNoDelay(true);
 					netco::co_go(
 						[conn]
 						{
 							std::string hello("HTTP/1.0 200 OK\r\nServer: netco/0.1.0\r\nContent-Length: 72\r\nContent-Type: text/html\r\n\r\n<HTML><TITLE>hello</TITLE>\r\n<BODY><P>hello word!\r\n</BODY></HTML>\r\n");
 							//std::string body("<HTML><TITLE>hello</TITLE>\r\n<BODY><P>hello word!\r\n</BODY></HTML>\r\n");
 							char buf[1024];
-							if (netco::co_read(conn.fd(), buf, 1024) > 0)
+							if (conn->read((void*)buf, 1024) > 0)
 							{
-								send(conn.fd(), hello.c_str(), hello.size(), MSG_NOSIGNAL);
+								conn->send(hello.c_str(), hello.size());
 								netco::co_wait(50);//需要等一下，否则还没发送完毕就关闭了
 							}
+							delete conn;
 						}
 						);
 				}
@@ -185,9 +187,27 @@ void test_func5()
 	
 }
 
+void test_func6(){
+	netco::co_go(
+				[]
+				{
+					char buf[1024];
+					while(1){
+						netco::co_wait(2000);
+						netco::Socket s;
+						s.connect("127.0.0.1", 8099);
+						s.send("ping", 4);
+						s.read(buf, 1024);
+						std::cout << std::string(buf) << std::endl;
+					}
+				}
+				);
+}
+
 int main()
 {
 	test_func5();
+	test_func6();
 	netco::sche_join();
 	std::cout << "end" << std::endl;
 	return 0;
