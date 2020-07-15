@@ -2,9 +2,6 @@
  <br>
  blog: https://blog.csdn.net/weixin_42333737/article/details/103981680 <br>
 <br>
-
-[版本说明](https://github.com/YukangLiu/netco/blob/master/Version.md)<br>
-<br>
 1、定位：<br>
 	netco协程库是纯c++11实现的轻量级对称协程库，有着极简的协程创建接口设计和用于并发网络编程的接口。<br>
 	若不需要用于网络编程，可使用我另一个更轻量的协程库tinyco：https://github.com/YukangLiu/tinyco <br>
