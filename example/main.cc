@@ -1,5 +1,6 @@
 //@author Liu Yukang
 #include <iostream>
+#include <sys/sysinfo.h>
 
 #include "processor.h"
 #include "netco_api.h"
@@ -20,7 +21,6 @@ void single_acceptor_server_test()
 				listener.setTcpNoDelay(true);
 				listener.setReuseAddr(true);
 				listener.setReusePort(true);
-				listener.setBlockSocket();
 				if (listener.bind(8099) < 0)
 				{
 					return;
@@ -53,7 +53,8 @@ void single_acceptor_server_test()
 //每条线程一个acceptor的服务
 void multi_acceptor_server_test()
 {
-	for (int i = 0; i < 4; ++i)
+	auto tCnt = ::get_nprocs_conf();
+	for (int i = 0; i < tCnt; ++i)
 	{
 		netco::co_go(
 			[]
@@ -153,9 +154,9 @@ void mutex_test(netco::RWMutex& mu){
 int main()
 {
 	netco::RWMutex mu;
-	test_mutex(mu);
-	//test_func5();
-	//test_func6();
+	mutex_test(mu);
+	single_acceptor_server_test();
+	client_test();
 	netco::sche_join();
 	std::cout << "end" << std::endl;
 	return 0;
