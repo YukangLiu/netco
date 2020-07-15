@@ -13,7 +13,22 @@
 2、使用：<br>
 	编译src文件夹源码，使用时包含netco_api.h，即可使用netco协程库接口：<br>
 	co_go(func)执行一条协程；<br>
-	co_wait(time)等待time时间后继续执行当前协程；<br>
+	co_sleep(time)等待time毫秒时间后继续执行当前协程；<br>
+	<br>
+	包含socket.h，即可使用socket族函数接口：<br>
+	Socket s; //创建一个socket类<br>
+	s.bind(80); //绑定端口号80<br>
+	s.listen(); //开始监听<br>
+	Socket conSock(s.accept()); //accept一个连接<br>
+	conSock.read(buf, 1024); //读连接上的数据<br>
+	conSock.send(buf, 1024); //往对端写数据<br>
+	Socket clientSock;<br>
+	clientSock.connect("127.0.0.1", 80); //建立一个连接,之后即可如上述read和send<br>
+	<br>
+	包含mutex.h，即可使用读写锁，因为读写锁包含了普通的互斥锁功能，不对互斥锁做单独实现<br>
+	rlock()读锁，runlock()读解锁，wlock()写锁，wunlock()写解锁；<br>
+	<br>
+	具体用法可见example<br>
 <br>
 <br>
 3、文件：<br>

@@ -32,6 +32,8 @@ namespace netco
 		//暂停运行当前协程
 		void yield();
 
+		Processor* getMyProcessor(){return pMyProcessor_;}
+
 		//运行该协程的函数
 		inline void startFunc() { coFunc_(); };
 

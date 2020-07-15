@@ -18,7 +18,7 @@ namespace netco
 	void co_go(std::function<void()>&& func, size_t stackSize = parameter::coroutineStackSize, int tid = -1);
 
 	//当前协程等待t毫秒后再继续执行
-	void co_wait(Time t);
+	void co_sleep(Time t);
 
 	//等待调度器的结束
 	void sche_join();

@@ -64,12 +64,14 @@ namespace netco
 
 		inline size_t getCoCnt() { return coSet_.size(); }
 
+		void goCo(Coroutine* co);
+
+		void goCoBatch(std::vector<Coroutine*>& cos);
+
 	private:
 
 		//恢复运行指定协程
 		void resume(Coroutine*);
-
-		void goNewCo_aux(Coroutine*);
 
 		inline void wakeUpEpoller();
 
@@ -90,7 +92,7 @@ namespace netco
 
 		Spinlock coPoolLock_;
 
-		std::mutex newCoQueMtx_;
+		//std::mutex newCoQueMtx_;
 
 		//EventEpoller发现的活跃事件所放的列表
 		std::vector<Coroutine*> actCoroutines_;

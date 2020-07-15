@@ -158,7 +158,7 @@ ssize_t Socket::send(const void* buf, size_t count)
 		return count;
 	}
 	netco::Scheduler::getScheduler()->getProcessor(threadIdx)->waitEvent(_sockfd, EPOLLOUT);
-	return send(buf + sendIdx, count - sendIdx);
+	return send((char *)buf + sendIdx, count - sendIdx);
 }
 
 int Socket::shutdownWrite()

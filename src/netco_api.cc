@@ -27,7 +27,7 @@ void netco::co_go(std::function<void()>& func, size_t stackSize, int tid)
 	}
 }
 
-void netco::co_wait(Time time)
+void netco::co_sleep(Time time)
 {
 	netco::Scheduler::getScheduler()->getProcessor(threadIdx)->wait(time);
 }

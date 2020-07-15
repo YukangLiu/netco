@@ -65,11 +65,21 @@ void Processor::wait(Time time)
 	mainCtx_.swapToMe(pCurCoroutine_->getCtx());
 }
 
-void Processor::goNewCo_aux(Coroutine* pCo)
+void Processor::goCo(Coroutine* pCo)
 {
 	{
 		SpinlockGuard lock(newQueLock_);
 		newCoroutines_[!runningNewQue_].push(pCo);
+	}
+	wakeUpEpoller();
+}
+
+void Processor::goCoBatch(std::vector<Coroutine*>& cos){
+	{
+		SpinlockGuard lock(newQueLock_);
+		for(auto pCo : cos){
+			newCoroutines_[!runningNewQue_].push(pCo);
+		}
 	}
 	wakeUpEpoller();
 }
@@ -119,6 +129,7 @@ bool Processor::loop()
 				//执行新来的协程
 				Coroutine* pNewCo = nullptr;
 				int runningQue = runningNewQue_;
+				
 				while (!newCoroutines_[runningQue].empty())
 				{
 					{
@@ -192,7 +203,7 @@ void Processor::goNewCo(std::function<void()>&& coFunc, size_t stackSize)
 		pCo = coPool_.new_obj(this, stackSize, std::move(coFunc));
 	}
 
-	goNewCo_aux(pCo);
+	goCo(pCo);
 }
 
 void Processor::goNewCo(std::function<void()>& coFunc, size_t stackSize)
@@ -205,7 +216,7 @@ void Processor::goNewCo(std::function<void()>& coFunc, size_t stackSize)
 		pCo = coPool_.new_obj(this, stackSize, coFunc);
 	}
 	
-	goNewCo_aux(pCo);
+	goCo(pCo);
 }
 
 void Processor::killCurCo()
