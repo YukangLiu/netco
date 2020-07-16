@@ -1,7 +1,7 @@
 //@author Liu Yukang
-#include "processor.h"
-#include "parameter.h"
-#include "spinlock_guard.h"
+#include "../include/processor.h"
+#include "../include/parameter.h"
+#include "../include/spinlock_guard.h"
 
 #include <sys/epoll.h>
 #include <unistd.h>

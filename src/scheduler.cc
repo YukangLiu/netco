@@ -1,5 +1,5 @@
 //@author Liu Yukang
-#include "scheduler.h"
+#include "../include/scheduler.h"
 
 #include <sys/sysinfo.h>
 

@@ -1,6 +1,6 @@
 //@author Liu Yukang
-#include "processor_selector.h"
-#include "processor.h"
+#include "../include/processor_selector.h"
+#include "../include/processor.h"
 
 using namespace netco;
 

@@ -1,6 +1,6 @@
 //@author Liu Yukang
-#include "context.h"
-#include "parameter.h"
+#include "../include/context.h"
+#include "../include/parameter.h"
 #include <stdlib.h>
 
 using namespace netco;

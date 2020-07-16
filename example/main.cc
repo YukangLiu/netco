@@ -33,14 +33,22 @@ void single_acceptor_server_test()
 				netco::co_go(
 					[conn]
 					{
-						std::string hello("HTTP/1.0 200 OK\r\nServer: netco/0.1.0\r\nContent-Length: 72\r\nContent-Type: text/html\r\n\r\n<HTML><TITLE>hello</TITLE>\r\n<BODY><P>hello word!\r\n</BODY></HTML>\r\n");
-						//std::string body("<HTML><TITLE>hello</TITLE>\r\n<BODY><P>hello word!\r\n</BODY></HTML>\r\n");
-						char buf[1024];
-						if (conn->read((void*)buf, 1024) > 0)
+						std::vector<char> buf;
+						buf.resize(2048);
+						while (1)
 						{
-							conn->send(hello.c_str(), hello.size());
-							netco::co_sleep(50);//需要等一下，否则还没发送完毕就关闭了
+							auto readNum = conn->read((void*)&(buf[0]), buf.size());
+							std::string ok = "HTTP/1.0 200 OK\r\nServer: netco/0.1.0\r\nContent-Type: text/html\r\n\r\n";
+							if(readNum < 0){
+								break;
+							}
+							conn->send(ok.c_str(), ok.size());
+							conn->send((void*)&(buf[0]), readNum);
+							if(readNum < (int)buf.size()){
+								break;
+							}
 						}
+						netco::co_sleep(100);//需要等一下，否则还没发送完毕就关闭了
 						delete conn;
 					}
 					);
@@ -79,7 +87,7 @@ void multi_acceptor_server_test()
 						[conn]
 						{
 							std::string hello("HTTP/1.0 200 OK\r\nServer: netco/0.1.0\r\nContent-Length: 72\r\nContent-Type: text/html\r\n\r\n<HTML><TITLE>hello</TITLE>\r\n<BODY><P>hello word!\r\n</BODY></HTML>\r\n");
-							//std::string body("<HTML><TITLE>hello</TITLE>\r\n<BODY><P>hello word!\r\n</BODY></HTML>\r\n");
+							//std::string hello("<HTML><TITLE>hello</TITLE>\r\n<BODY><P>hello word!\r\n</BODY></HTML>\r\n");
 							char buf[1024];
 							if (conn->read((void*)buf, 1024) > 0)
 							{
@@ -153,10 +161,11 @@ void mutex_test(netco::RWMutex& mu){
 
 int main()
 {
-	netco::RWMutex mu;
-	mutex_test(mu);
+	//netco::RWMutex mu;
+	//mutex_test(mu);
 	single_acceptor_server_test();
-	client_test();
+	//multi_acceptor_server_test();
+	//client_test();
 	netco::sche_join();
 	std::cout << "end" << std::endl;
 	return 0;

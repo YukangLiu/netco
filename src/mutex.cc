@@ -1,7 +1,7 @@
 //@author Liu Yukang
-#include "mutex.h"
-#include "scheduler.h"
-#include "spinlock_guard.h"
+#include "../include/mutex.h"
+#include "../include/scheduler.h"
+#include "../include/spinlock_guard.h"
 
 using namespace netco;
 

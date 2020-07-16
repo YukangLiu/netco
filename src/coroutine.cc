@@ -1,7 +1,7 @@
 //@author Liu Yukang
-#include "coroutine.h"
-#include "processor.h"
-#include "parameter.h"
+#include "../include/coroutine.h"
+#include "../include/processor.h"
+#include "../include/parameter.h"
 
 using namespace netco;
 

@@ -1,7 +1,7 @@
 
 TARGET =libnetco.so
 CC =g++ -fPIC -g -O3 -Wall -std=c++11
-INCLUDE =$(shell find ./ -name "*.h")
+INCLUDE =$(shell find ../include -name "*.h")
 SOURCE =$(shell find ./ -name "*.cc")
 OBJS =$(SOURCE:%.cc=%.o)
 LIBS = -lpthread
