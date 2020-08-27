@@ -2,10 +2,10 @@
 #include <iostream>
 #include <sys/sysinfo.h>
 
-#include "processor.h"
-#include "netco_api.h"
-#include "socket.h"
-#include "mutex.h"
+#include "../include/processor.h"
+#include "../include/netco_api.h"
+#include "../include/socket.h"
+#include "../include/mutex.h"
 
 using namespace netco;
 
